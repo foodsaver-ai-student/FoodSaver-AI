@@ -1,0 +1,745 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>FoodSaver AI - Advanced Admin Dashboard</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f8f5;
+            color: #263b32;
+        }
+
+        /* HEADER */
+
+        header {
+            background: #16834b;
+            color: white;
+            padding: 22px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 32px;
+        }
+
+        header p {
+            margin-bottom: 0;
+        }
+
+        /* MAIN CONTAINER */
+
+        .container {
+            max-width: 1250px;
+            margin: 35px auto;
+            padding: 15px;
+        }
+
+        h2.section-title {
+            margin-bottom: 22px;
+        }
+
+        /* DASHBOARD CARDS */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(210px, 1fr)
+            );
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px #00000010;
+            text-align: center;
+            border-top: 5px solid #16834b;
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            color: #65766c;
+            font-size: 17px;
+        }
+
+        .card h1 {
+            font-size: 36px;
+            margin: 10px 0;
+        }
+
+        .fresh {
+            border-color: #20a45c;
+        }
+
+        .rotten {
+            border-color: #e05a4f;
+        }
+
+        .nonfood {
+            border-color: #e5a832;
+        }
+
+        /* ANALYTICS SECTION */
+
+        .analytics {
+            margin-top: 40px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(300px, 1fr)
+            );
+            gap: 22px;
+        }
+
+        .chart-box {
+            background: white;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px #00000010;
+            min-width: 0;
+        }
+
+        .chart-box h3 {
+            color: #16834b;
+            margin-top: 0;
+            margin-bottom: 22px;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+        }
+
+        .chart-wide {
+            margin-top: 22px;
+        }
+
+        /* HISTORY */
+
+        .history {
+            margin-top: 40px;
+            background: white;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px #00000010;
+            overflow-x: auto;
+        }
+
+        .history h2 {
+            color: #16834b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        th, td {
+            padding: 14px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #eaf6ee;
+            color: #16834b;
+        }
+
+        tr:hover {
+            background: #f8fcf9;
+        }
+
+        .status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .status-fresh {
+            background: #d9f7e5;
+            color: #16834b;
+        }
+
+        .status-rotten {
+            background: #ffe0dd;
+            color: #c0392b;
+        }
+
+        .status-na {
+            background: #fff0cc;
+            color: #956500;
+        }
+
+        /* BUTTON */
+
+        .back {
+            display: inline-block;
+            margin-top: 25px;
+            background: #16834b;
+            color: white;
+            padding: 12px 22px;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+
+        .back:hover {
+            background: #116b3c;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #777;
+        }
+
+        @media(max-width: 600px) {
+
+            header h1 {
+                font-size: 25px;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+
+            .history {
+                padding: 15px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<!-- =================================
+     HEADER
+================================= -->
+
+<header>
+
+    <h1>🥗 FoodSaver AI</h1>
+
+    <p>Advanced Admin Dashboard & Food Analysis Management</p>
+
+</header>
+
+
+<div class="container">
+
+
+    <!-- =================================
+         DASHBOARD OVERVIEW
+    ================================= -->
+
+    <h2 class="section-title">📊 Dashboard Overview</h2>
+
+
+    <div class="stats">
+
+        <div class="card">
+
+            <h3>Total Scans</h3>
+
+            <h1>{{ total_scans }}</h1>
+
+            <p>Images Analyzed</p>
+
+        </div>
+
+
+        <div class="card fresh">
+
+            <h3>🥬 Fresh Food</h3>
+
+            <h1>{{ fresh_count }}</h1>
+
+            <p>Fresh Detections</p>
+
+        </div>
+
+
+        <div class="card rotten">
+
+            <h3>🍂 Rotten Food</h3>
+
+            <h1>{{ rotten_count }}</h1>
+
+            <p>Rotten Detections</p>
+
+        </div>
+
+
+        <div class="card nonfood">
+
+            <h3>🚫 Non-Food Images</h3>
+
+            <h1>{{ non_food_count }}</h1>
+
+            <p>Rejected Images</p>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =================================
+         ANALYTICS CHARTS
+    ================================= -->
+
+    <div class="analytics">
+
+        <h2 class="section-title">
+            📈 Food Analytics & Insights
+        </h2>
+
+
+        <div class="charts-grid">
+
+
+            <!-- FOOD CATEGORY CHART -->
+
+            <div class="chart-box">
+
+                <h3>🥕 Food Category Analysis</h3>
+
+                <div class="chart-container">
+
+                    <canvas id="foodChart"></canvas>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- FRESH VS ROTTEN CHART -->
+
+            <div class="chart-box">
+
+                <h3>🌱 Fresh vs Rotten Food</h3>
+
+                <div class="chart-container">
+
+                    <canvas id="freshnessChart"></canvas>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- MONTHLY ANALYSIS -->
+
+        <div class="chart-box chart-wide">
+
+            <h3>📅 Monthly Food Analysis</h3>
+
+            <div class="chart-container">
+
+                <canvas id="monthlyChart"></canvas>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =================================
+         RECENT ANALYSIS HISTORY
+    ================================= -->
+
+    <div class="history">
+
+        <h2>📋 Recent Analysis History</h2>
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>ID</th>
+
+                    <th>Food</th>
+
+                    <th>Freshness</th>
+
+                    <th>Confidence</th>
+
+                    <th>Date & Time</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for item in recent_records %}
+
+                <tr>
+
+                    <td>{{ item.id }}</td>
+
+                    <td>{{ item.food }}</td>
+
+                    <td>
+
+                        {% if item.freshness == 'Fresh' %}
+
+                            <span class="status status-fresh">
+                                Fresh
+                            </span>
+
+                        {% elif item.freshness == 'Rotten' %}
+
+                            <span class="status status-rotten">
+                                Rotten
+                            </span>
+
+                        {% else %}
+
+                            <span class="status status-na">
+                                N/A
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+                        {{ "%.2f"|format(item.confidence) }}%
+                    </td>
+
+                    <td>{{ item.created_at }}</td>
+
+                </tr>
+
+                {% else %}
+
+                <tr>
+
+                    <td colspan="5">
+                        No analysis records found.
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+
+    <!-- BACK BUTTON -->
+
+    <a href="/" class="back">
+
+        ← Back to FoodSaver AI
+
+    </a>
+
+
+</div>
+
+
+<!-- =================================
+     FOOTER
+================================= -->
+
+<footer>
+
+    FoodSaver AI | Developed by Web Savera
+
+</footer>
+
+
+
+<!-- =================================
+     CHART.JS CONFIGURATION
+================================= -->
+
+<script>
+
+    // DATABASE DATA FROM FLASK
+
+    const foodStats = {{ food_stats | tojson }};
+
+    const monthlyStats = {{ monthly_stats | tojson }};
+
+
+    // =================================
+    // 1. FOOD CATEGORY CHART
+    // =================================
+
+    const foodLabels = foodStats.map(
+        item => item.food
+    );
+
+    const foodValues = foodStats.map(
+        item => item.total
+    );
+
+
+    new Chart(
+        document.getElementById("foodChart"),
+        {
+
+            type: "bar",
+
+            data: {
+
+                labels: foodLabels,
+
+                datasets: [{
+
+                    label: "Total Food Scans",
+
+                    data: foodValues,
+
+                    backgroundColor: [
+                        "#16834b",
+                        "#20a45c",
+                        "#e5a832",
+                        "#e05a4f",
+                        "#3498db",
+                        "#9b59b6",
+                        "#16a085"
+                    ],
+
+                    borderRadius: 7
+
+                }]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                plugins: {
+
+                    legend: {
+                        display: false
+                    }
+
+                },
+
+                scales: {
+
+                    y: {
+
+                        beginAtZero: true,
+
+                        ticks: {
+                            precision: 0
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+    );
+
+
+
+    // =================================
+    // 2. FRESH VS ROTTEN CHART
+    // =================================
+
+    new Chart(
+
+        document.getElementById("freshnessChart"),
+
+        {
+
+            type: "doughnut",
+
+            data: {
+
+                labels: [
+                    "Fresh Food",
+                    "Rotten Food"
+                ],
+
+                datasets: [{
+
+                    data: [
+                        {{ fresh_count }},
+                        {{ rotten_count }}
+                    ],
+
+                    backgroundColor: [
+                        "#20a45c",
+                        "#e05a4f"
+                    ],
+
+                    borderWidth: 2,
+
+                    borderColor: "#ffffff"
+
+                }]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                plugins: {
+
+                    legend: {
+
+                        position: "bottom"
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    );
+
+
+
+    // =================================
+    // 3. MONTHLY ANALYSIS CHART
+    // =================================
+
+    const monthLabels = monthlyStats.map(
+        item => item.month
+    );
+
+    const monthValues = monthlyStats.map(
+        item => item.total
+    );
+
+
+    new Chart(
+
+        document.getElementById("monthlyChart"),
+
+        {
+
+            type: "line",
+
+            data: {
+
+                labels: monthLabels,
+
+                datasets: [{
+
+                    label: "Monthly Food Scans",
+
+                    data: monthValues,
+
+                    borderColor: "#16834b",
+
+                    backgroundColor: "rgba(22,131,75,0.15)",
+
+                    fill: true,
+
+                    tension: 0.35,
+
+                    pointRadius: 5,
+
+                    pointBackgroundColor: "#16834b"
+
+                }]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                plugins: {
+
+                    legend: {
+
+                        position: "top"
+
+                    }
+
+                },
+
+                scales: {
+
+                    y: {
+
+                        beginAtZero: true,
+
+                        ticks: {
+                            precision: 0
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    );
+
+</script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,112 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f3f8f3;
+    color: #26352a;
+    min-height: 100vh;
+    padding: 50px 20px;
+}
+
+.container {
+    max-width: 850px;
+    margin: auto;
+    background: white;
+    padding: 45px;
+    border-radius: 22px;
+    text-align: center;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.08);
+}
+
+h1 {
+    color: #168344;
+    font-size: 42px;
+    margin-bottom: 15px;
+}
+
+h2 {
+    font-size: 25px;
+    margin: 20px 0;
+}
+
+p {
+    color: #68756a;
+    font-size: 17px;
+    margin-bottom: 30px;
+}
+
+.upload-box {
+    border: 2px dashed #35a66a;
+    background: #f5fbf6;
+    padding: 35px;
+    border-radius: 16px;
+    margin: 25px 0;
+}
+
+input[type="file"] {
+    max-width: 100%;
+    padding: 12px;
+}
+
+button {
+    background: #168344;
+    color: white;
+    border: none;
+    padding: 15px 35px;
+    border-radius: 9px;
+    font-size: 17px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #106634;
+    transform: translateY(-2px);
+}
+
+#preview {
+    max-width: 300px;
+    max-height: 300px;
+    object-fit: contain;
+    border-radius: 12px;
+    margin-top: 20px;
+}
+
+.food-tips {
+    margin: 30px auto;
+    padding: 25px;
+    max-width: 700px;
+    background: #f0faf3;
+    border-radius: 16px;
+    text-align: left;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+}
+
+.food-tips h2 {
+    color: #15803d;
+    text-align: center;
+}
+
+.food-tips h3 {
+    color: #166534;
+    margin-top: 22px;
+}
+
+.food-tips ul {
+    padding-left: 25px;
+    line-height: 1.9;
+}
+
+.food-tips li {
+    margin-bottom: 8px;
+    color: #334155;
+}
+
+.food-tips small {
+    color: #64748b;
+}

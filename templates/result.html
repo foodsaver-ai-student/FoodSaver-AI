@@ -1,0 +1,194 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>FoodSaver AI Results</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+
+    <h1>🥗 FoodSaver AI</h1>
+
+    <h2>AI Food Recognition Results</h2>
+
+
+    <!-- UPLOADED IMAGE -->
+
+    <img
+        src="{{ url_for('static', filename='uploads/' + image_name) }}"
+        width="300"
+        alt="Uploaded Image"
+        style="max-width:100%; height:auto; border-radius:12px;"
+    >
+
+
+    <!-- FOOD RECOGNITION RESULT -->
+
+    {% if result.is_food %}
+
+        <div class="food-result">
+
+            <h3>Identified Food:</h3>
+
+            <div class="result">
+                {{ result.food }}
+            </div>
+
+
+            <h3>Freshness Status:</h3>
+
+            <div class="result">
+                {{ result.freshness }}
+            </div>
+
+
+            <p>
+                AI Confidence:
+                <strong>
+                    {{ "%.2f"|format(result.confidence) }}%
+                </strong>
+            </p>
+
+        </div>
+
+
+        <!-- TOP AI PREDICTIONS -->
+
+        <h3>Top AI Predictions</h3>
+
+        {% if result.predictions %}
+
+            {% for item in result.predictions %}
+
+                <div class="result">
+
+                    {{ item.label }} -
+
+                    {{ "%.2f"|format(item.score * 100) }}%
+
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <p>
+                Top predictions are not available.
+            </p>
+
+        {% endif %}
+
+
+        <!-- SMART FOOD STORAGE GUIDE -->
+
+        {% if tips %}
+
+        <div class="food-tips">
+
+            <h2>🌱 Smart Food Storage Guide</h2>
+
+            <h3>{{ tips.food }}</h3>
+
+
+            <h3>🏠 Storage Recommendations</h3>
+
+            <ul>
+
+                {% for tip in tips.storage %}
+
+                    <li>{{ tip }}</li>
+
+                {% endfor %}
+
+            </ul>
+
+
+            <h3>♻️ Ways to Reduce Food Waste</h3>
+
+            <ul>
+
+                {% for tip in tips.waste %}
+
+                    <li>{{ tip }}</li>
+
+                {% endfor %}
+
+            </ul>
+
+
+            <p>
+                <small>
+                    These are general storage recommendations.
+                    Image recognition does not establish
+                    whether food is safe to eat.
+                </small>
+            </p>
+
+        </div>
+
+        {% endif %}
+
+
+    <!-- NON-FOOD IMAGE RESULT -->
+
+    {% else %}
+
+        <div class="non-food-message">
+
+            <h2>🚫 Non-Food Image Detected</h2>
+
+            <p>
+                Sorry! FoodSaver AI could not recognize
+                this image as a supported fruit or vegetable.
+            </p>
+
+            <p>
+                Please upload a clear image of a supported
+                fruit or vegetable.
+            </p>
+
+            <h3>Supported Food Categories</h3>
+
+            <ul>
+
+                <li>🍎 Apple</li>
+                <li>🍌 Banana</li>
+                <li>🫑 Bell Pepper</li>
+                <li>🥕 Carrot</li>
+                <li>🥒 Cucumber</li>
+                <li>🥭 Mango</li>
+                <li>🍊 Orange</li>
+                <li>🥔 Potato</li>
+                <li>🍓 Strawberry</li>
+                <li>🍅 Tomato</li>
+
+            </ul>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- UPLOAD ANOTHER IMAGE BUTTON -->
+
+    <a href="/" class="button">
+        Upload Another Image
+    </a>
+
+</div>
+
+</body>
+
+</html>
