@@ -1,11 +1,10 @@
-
 from flask import Flask, render_template, request
 from werkzeug.utils import secure_filename
 
 from food_model import analyze_food
 from food_tips import get_food_tips
 
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 import os
 import uuid
@@ -30,15 +29,32 @@ DATABASE = os.path.join(
 )
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+# Maximum upload size: 5 MB
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
+
+# =====================================
+# 2. ALLOWED IMAGE EXTENSIONS
+# =====================================
+
+ALLOWED_EXTENSIONS = {
+    "jpg",
+    "jpeg",
+    "png",
+    "webp",
+    "gif",
+    "bmp",
+    "tiff",
+    "tif",
+    "jfif"
+}
 
 
 # =====================================
-# 2. DATABASE CONNECTION
+# 3. DATABASE CONNECTION
 # =====================================
 
 def get_db_connection():
@@ -51,7 +67,7 @@ def get_db_connection():
 
 
 # =====================================
-# 3. CREATE DATABASE TABLE
+# 4. CREATE DATABASE TABLE
 # =====================================
 
 def initialize_database():
@@ -85,7 +101,7 @@ def initialize_database():
 
 
 # =====================================
-# 4. SAVE ANALYSIS RESULT
+# 5. SAVE ANALYSIS RESULT
 # =====================================
 
 def save_analysis(image_name, result):
@@ -124,7 +140,7 @@ def save_analysis(image_name, result):
 
 
 # =====================================
-# 5. FILE VALIDATION
+# 6. FILE VALIDATION
 # =====================================
 
 def allowed_file(filename):
@@ -137,7 +153,7 @@ def allowed_file(filename):
 
 
 # =====================================
-# 6. HOME PAGE
+# 7. HOME PAGE
 # =====================================
 
 @app.route("/")
@@ -147,11 +163,15 @@ def home():
 
 
 # =====================================
-# 7. FOOD IMAGE ANALYSIS
+# 8. FOOD IMAGE ANALYSIS
 # =====================================
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
+
+    # ---------------------------------
+    # CHECK FILE
+    # ---------------------------------
 
     if "food_image" not in request.files:
 
@@ -163,15 +183,24 @@ def analyze():
 
         return "Please select an image!", 400
 
+    # ---------------------------------
+    # CHECK FILE EXTENSION
+    # ---------------------------------
+
     if not allowed_file(file.filename):
 
-        return "Please upload a valid image!", 400
+        return (
+            "Unsupported image format! "
+            "Please upload JPG, JPEG, PNG, WEBP, "
+            "GIF, BMP, TIFF or JFIF.",
+            400
+        )
 
-    filename = secure_filename(file.filename)
+    # ---------------------------------
+    # CREATE UNIQUE IMAGE NAME
+    # ---------------------------------
 
-    extension = filename.rsplit(".", 1)[1].lower()
-
-    unique_filename = f"{uuid.uuid4().hex}.{extension}"
+    unique_filename = f"{uuid.uuid4().hex}.jpg"
 
     image_path = os.path.join(
         app.config["UPLOAD_FOLDER"],
@@ -180,31 +209,77 @@ def analyze():
 
     try:
 
-        # Save image
+        # =================================
+        # 1. OPEN IMAGE
+        # =================================
 
-        file.save(image_path)
+        image = Image.open(file.stream)
 
-        # Validate actual image
+        # =================================
+        # 2. HANDLE ANIMATED GIF
+        # =================================
 
-        with Image.open(image_path) as img:
+        # Analyze only the first frame
+        # of animated GIF images.
 
-            img.verify()
+        if getattr(image, "is_animated", False):
 
-        print("\nStarting FoodSaver AI Analysis...")
+            image.seek(0)
 
-        # AI Recognition
+        # =================================
+        # 3. CORRECT IMAGE ORIENTATION
+        # =================================
+
+        image = ImageOps.exif_transpose(image)
+
+        # =================================
+        # 4. CONVERT TO RGB
+        # =================================
+
+        # Convert PNG, WEBP, GIF, BMP,
+        # TIFF and other supported images
+        # into standard RGB format.
+
+        image = image.convert("RGB")
+
+        # =================================
+        # 5. SAVE AS JPEG
+        # =================================
+
+        image.save(
+            image_path,
+            format="JPEG",
+            quality=90
+        )
+
+        print("\nImage converted successfully!")
+
+        print("Starting FoodSaver AI Analysis...")
+
+        # =================================
+        # 6. AI RECOGNITION
+        # =================================
 
         result = analyze_food(image_path)
 
         print("Food:", result.get("food"))
+
         print("Freshness:", result.get("freshness"))
+
         print("Confidence:", result.get("confidence"))
 
-        # Save analysis to database
+        # =================================
+        # 7. SAVE ANALYSIS TO DATABASE
+        # =================================
 
-        save_analysis(unique_filename, result)
+        save_analysis(
+            unique_filename,
+            result
+        )
 
-        # Food Storage Tips
+        # =================================
+        # 8. FOOD STORAGE TIPS
+        # =================================
 
         tips = None
 
@@ -214,7 +289,9 @@ def analyze():
                 result["label"]
             )
 
-        # Display Results
+        # =================================
+        # 9. DISPLAY RESULTS
+        # =================================
 
         return render_template(
             "result.html",
@@ -223,17 +300,31 @@ def analyze():
             tips=tips
         )
 
+    # =================================
+    # INVALID IMAGE ERROR
+    # =================================
+
     except UnidentifiedImageError:
 
         if os.path.exists(image_path):
+
             os.remove(image_path)
 
         return (
-            "Invalid image file. Please upload a real image.",
+            "Invalid image file! "
+            "Please upload a valid image.",
             400
         )
 
+    # =================================
+    # OTHER ERRORS
+    # =================================
+
     except Exception as e:
+
+        if os.path.exists(image_path):
+
+            os.remove(image_path)
 
         print("Analysis Error:", e)
 
@@ -244,7 +335,7 @@ def analyze():
 
 
 # =====================================
-# 8. ADMIN DASHBOARD
+# 10. ADMIN DASHBOARD
 # =====================================
 
 @app.route("/admin")
@@ -386,7 +477,7 @@ def admin():
 
 
 # =====================================
-# 9. FILE SIZE ERROR
+# 11. FILE SIZE ERROR
 # =====================================
 
 @app.errorhandler(413)
@@ -399,14 +490,14 @@ def file_too_large(error):
 
 
 # =====================================
-# 10. INITIALIZE DATABASE
+# 12. INITIALIZE DATABASE
 # =====================================
 
 initialize_database()
 
 
 # =====================================
-# 11. RUN APPLICATION
+# 13. RUN APPLICATION
 # =====================================
 
 if __name__ == "__main__":
